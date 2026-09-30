@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>ROBO-Z AI Simulation State Machine</title>
+<style>
+body{font-family:'Noto Sans Thai','Sarabun',Tahoma,sans-serif;background:#0f172a;padding:20px;color:#111827}
+.card{max-width:950px;margin:auto;background:white;padding:35px;border-radius:20px;line-height:1.9;font-size:20px}
+h1{font-size:34px;text-align:center;color:#2563eb} h2{font-size:28px;text-align:center;color:#2563eb} h3{font-size:24px}
+.box{background:#eff6ff;padding:22px;border-radius:15px;margin:18px 0;font-size:20px;color:#111827}
+.status{background:#dcfce7}
+.resource{background:#fef3c7}
+button{width:100%;padding:18px;margin:10px 0;border:0;border-radius:12px;background:#2563eb;color:white;font-size:21px;font-weight:bold;line-height:1.5}
+.log{background:#f3f4f6;padding:20px;border-radius:10px;font-size:18px}
+.hidden{display:none}
+</style>
+</head>
+<body>
+<div class="card">
+
+<h1>🤖 ROBO-Z: System Simulation Mission</h1>
+
+
+<div class="box" style="background:#fef3c7">
+<h2>🎮 คำอธิบายเกม</h2>
+
+<p>
+<b>ROBO-Z: System Simulation Mission</b><br>
+เป็นเกมจำลองสถานการณ์ที่ผู้เล่นรับบทเป็นนักวิเคราะห์ระบบ
+ต้องช่วย Robo-Z แก้ไขปัญหาที่เกิดขึ้น โดยใช้ข้อมูล หลักฐาน
+และทรัพยากรที่มีจำกัด เพื่อวางแผนและตัดสินใจให้เหมาะสม
+</p>
+
+<p><b>🎯 เป้าหมายของเกม</b></p>
+<p>
+ผู้เล่นต้องบริหารทรัพยากร เลือก Action ที่เหมาะสม
+วิเคราะห์ผลกระทบ และนำระบบ Robo-Z กลับมาทำงานให้สำเร็จ
+</p>
+
+<p><b>🕹️ วิธีการเล่น</b></p>
+<p>
+1️⃣ อ่านสถานะระบบ (System Status) เพื่อดูปัญหาปัจจุบัน<br>
+2️⃣ วิเคราะห์หลักฐาน (Evidence Panel) ที่ Robo-Z พบ<br>
+3️⃣ ตรวจสอบทรัพยากรที่เหลือ (Budget) ก่อนเลือก Action<br>
+4️⃣ เลือกการกระทำ (Action) ที่คิดว่าเหมาะสมที่สุด<br>
+5️⃣ ดูผลลัพธ์ (Feedback และ Event Log) จากการตัดสินใจ<br>
+6️⃣ เล่นต่อจนระบบเปลี่ยนสถานะ หรือจบภารกิจ
+</p>
+
+<p><b>💡 คำแนะนำ</b></p>
+<p>
+การเลือกแต่ละครั้งส่งผลต่อทรัพยากรและสถานการณ์ในอนาคต
+ควรวิเคราะห์ข้อมูลก่อนตัดสินใจ ไม่ควรเลือกจากการคาดเดา
+</p>
+</div>
+
+<div id="game">
+
+<div class="box status">
+<h2>🌐 System Status</h2>
+<p id="status"></p>
+</div>
+
+<div class="box">
+<h2>🔎 Evidence Panel</h2>
+<p id="evidence"></p>
+</div>
+
+<div class="box resource">
+<h2>🔋 Resource / Budget</h2>
+<p>Budget: <span id="budget"></span> | Turn: <span id="turn"></span></p>
+</div>
+
+<div class="box">
+<h2>🎯 Available Actions</h2>
+<div id="actions"></div>
+</div>
+
+<div class="box">
+<h2>🤖 Feedback</h2>
+<p id="feedback">เลือก Action เพื่อดำเนินการ</p>
+</div>
+
+<div class="box log">
+<h2>📜 Event Log</h2>
+<div id="log"></div>
+</div>
+
+</div>
+
+<div id="summary" class="hidden box"></div>
+
+<script>
+const states={
+S1:{
+status:"Robo-Z พบความผิดปกติของระบบ แต่ยังไม่ทราบสาเหตุที่แท้จริง",
+evidence:["พบข้อมูลระบบผิดปกติ","มีข้อมูลบางส่วนต้องตรวจสอบ","ทรัพยากรมีจำกัด"],
+actions:[
+["ตรวจสอบข้อมูลระบบ","10","1","ได้รับข้อมูลเพิ่ม","S2"],
+["เปลี่ยนอุปกรณ์ทันที","30","2","เสียทรัพยากรแต่ยังไม่ทราบสาเหตุ","S3"],
+["หยุดระบบทั้งหมด","20","1","ลดความเสี่ยงแต่ขาดข้อมูล","S4"]]},
+S2:{
+status:"ได้รับข้อมูลเพิ่มเติม ต้องวิเคราะห์ก่อนแก้ไข",
+evidence:["พบความสัมพันธ์ของข้อมูล","พบจุดที่ต้องตรวจสอบ"],
+actions:[
+["วิเคราะห์สาเหตุจากข้อมูล","15","1","พบแนวทางแก้ไข","S5"],
+["ทดลองแก้ไขแบบสุ่ม","25","2","ได้ข้อมูลบางส่วน","S3"],
+["รอโดยไม่ดำเนินการ","5","2","เสียเวลา","S4"]]},
+S3:{
+status:"ระบบยังไม่เสถียร ทรัพยากรลดลง",
+evidence:["ข้อมูลยังไม่ครบ","ต้องเลือกแนวทางใหม่"],
+actions:[
+["กลับมาตรวจสอบหลักฐาน","10","1","ได้ข้อมูลใหม่","S5"],
+["ใช้ทรัพยากรเพิ่ม","40","2","ระบบดีขึ้นบางส่วน","S4"],
+["ยกเลิกภารกิจ","0","1","ภารกิจหยุด","END"]]},
+S4:{
+status:"ประสิทธิภาพลดลง ต้องประเมินใหม่",
+evidence:["พบผลกระทบจากการตัดสินใจ"],
+actions:[
+["วางแผนใหม่","10","1","ฟื้นสถานการณ์","S5"],
+["ดำเนินการต่อโดยไม่วิเคราะห์","20","2","เกิดความเสี่ยง","END"],
+["ตรวจสอบข้อมูล","10","1","ได้รับข้อมูลเพิ่ม","S5"]]},
+S5:{
+status:"พร้อมตัดสินใจแก้ไขระบบ",
+evidence:["ข้อมูลเพียงพอสำหรับเลือกแนวทาง"],
+actions:[
+["เลือกแนวทางแก้ไขที่เหมาะสม","10","1","ระบบกลับมาทำงาน","SUCCESS"],
+["ทดลองเพิ่มเติม","20","2","ใช้เวลามากขึ้น","RETRY"],
+["เลือกจากการคาดเดา","5","1","เกิดความผิดพลาด","FAIL"]]}
+};
+
+let state="S1",budget=100,turn=1,logs=[];
+
+function render(){
+let s=states[state];
+status.innerHTML=s.status;
+evidence.innerHTML=s.evidence.map((item,index)=>(index+1)+" . "+item).join("<br>");
+document.getElementById("budget").innerHTML=budget;
+document.getElementById("turn").innerHTML=turn;
+
+actions.innerHTML="";
+s.actions.forEach(a=>{
+let b=document.createElement("button");
+b.innerHTML=a[0]+" (Cost "+a[1]+")";
+b.onclick=()=>act(a);
+actions.appendChild(b);
+});
+}
+
+function act(a){
+budget-=Number(a[1]);
+turn++;
+logs.push("Turn "+(turn-1)+": "+a[0]+" | Cost "+a[1]+" | Info: "+a[3]);
+log.innerHTML=logs.join("<br>");
+
+feedback.innerHTML=a[3];
+
+if(a[4]=="SUCCESS"||a[4]=="FAIL"||a[4]=="RETRY"||a[4]=="END"){
+finish(a[4]);
+return;
+}
+state=a[4];
+render();
+}
+
+function finish(result){
+game.className="hidden";
+summary.className="box";
+summary.innerHTML="<h2>🎉 Simulation Summary</h2>"+
+"<p>Outcome: "+result+"</p>"+
+"<p>Resource Remaining: "+budget+"</p>"+
+"<h3>Decision History</h3>"+logs.join("<br>");
+}
+
+render();
+</script>
+
+</div>
+</body>
+</html>

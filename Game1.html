@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Robot Builder Mission</title>
+<style>
+*{box-sizing:border-box;font-family:"Noto Sans Thai","Tahoma",sans-serif}
+body{margin:0;background:linear-gradient(135deg,#102a43,#2563eb);min-height:100vh;display:flex;align-items:center;justify-content:center}
+.box{width:95%;max-width:900px;background:white;border-radius:25px;padding:30px;box-shadow:0 15px 40px #0005;color:#111}
+.hidden{display:none}
+h1,h2{text-align:center;color:#1d4ed8;line-height:1.5}
+.story{background:#eff6ff;padding:20px;border-radius:15px;font-size:18px;line-height:1.8}
+input{width:100%;padding:15px;font-size:18px;border-radius:10px;border:2px solid #ccc;margin:15px 0}
+button{width:100%;padding:15px;border:0;border-radius:12px;background:#2563eb;color:white;font-size:18px;font-weight:bold;margin:8px 0;cursor:pointer}
+.option{background:#f8fafc;color:#111;border:2px solid #ddd;text-align:left}
+.feedback{padding:15px;border-radius:12px;font-size:18px;line-height:1.7;margin:15px 0}
+.history{background:#f1f5f9;padding:15px;border-radius:12px;font-size:17px;color:#111}
+.history-item{background:white;padding:10px;margin:8px 0;border-left:5px solid #2563eb;border-radius:8px}
+.progress{height:20px;background:#ddd;border-radius:20px;overflow:hidden}
+.bar{height:100%;background:#2563eb;width:0;transition:.4s}
+</style>
+</head>
+<body>
+<div class="box">
+
+<div id="start">
+<h1>🤖 Robot Builder Mission<br>ภารกิจปลดล็อก ROBO-X</h1>
+<div class="story">
+ปี ค.ศ. 2045 ศูนย์พัฒนา Robo Lab ต้องการกู้คืนระบบ ROBO-X<br><br>
+คุณคือวิศวกรหุ่นยนต์ฝึกหัด ต้องผ่านภารกิจความรู้ 10 ด่าน เพื่อปลดล็อกระบบ
+</div>
+<input id="name" placeholder="กรอกชื่อผู้เล่น">
+<button onclick="startGame()">เริ่มภารกิจ 🚀</button>
+<h2>📜 ประวัติผู้เล่น</h2>
+<div id="history" class="history"></div>
+</div>
+
+<div id="quiz" class="hidden">
+<h2 id="mission"></h2>
+<div class="story" id="scene"></div>
+<p>ความก้าวหน้า <span id="count"></span></p>
+<div class="progress"><div id="bar" class="bar"></div></div>
+<h2 id="question"></h2>
+<div id="options"></div>
+<div id="feedback" class="feedback"></div>
+<h2>คะแนน: <span id="score">0</span> / 100</h2>
+<button id="nextBtn" style="display:none" onclick="nextQuestion()">ถัดไป ➡️</button>
+</div>
+
+<div id="result" class="hidden">
+<h1>🎉 ภารกิจสำเร็จ</h1>
+<h2 id="summary"></h2>
+<div id="finalHistory" class="history"></div>
+<button onclick="location.reload()">เล่นใหม่</button>
+</div>
+
+</div>
+
+<script>
+function formatDate(date,time){
+ if(!date) return "-";
+ let d = new Date(date);
+ if(isNaN(d)) return date;
+ let day=String(d.getDate()).padStart(2,"0");
+ let month=String(d.getMonth()+1).padStart(2,"0");
+ let year=d.getFullYear()+543;
+ let result=day+"/"+month+"/"+year;
+ if(time){
+   let t=new Date(time);
+   if(!isNaN(t)){
+     result+=" เวลา "+String(t.getHours()).padStart(2,"0")+":"+String(t.getMinutes()).padStart(2,"0")+" น.";
+   }
+ }
+ return result;
+}
+
+const WEB_APP_URL="https://script.google.com/macros/s/AKfycbzujA5h9_LpnN23gOZy9gSpT1LNLH-gyhvpoYPdDZpwT_25QJ1ShMy6a4zSQBmOlqJtzg/exec";
+
+const questions=[
+["เปิดระบบความรู้","ROBO-X ต้องการรู้ความหมายของหุ่นยนต์","หุ่นยนต์ (Robot) หมายถึงข้อใดตามแนวคิดของการสร้างและพัฒนาหุ่นยนต์",["เครื่องจักรที่ทำงานได้เองโดยไม่จำเป็นต้องมีระบบควบคุม","ระบบหรือเครื่องจักรที่ออกแบบให้ทำงานตามคำสั่งหรือภารกิจที่กำหนด","อุปกรณ์อิเล็กทรอนิกส์ที่ใช้สำหรับตรวจจับข้อมูลเท่านั้น","โครงสร้างทางกลที่ใช้สำหรับติดตั้งมอเตอร์และเซนเซอร์"],1],
+["ตรวจสอบชิ้นส่วน","ตรวจสอบองค์ประกอบของ ROBO-X","ข้อใดเป็นองค์ประกอบพื้นฐานของหุ่นยนต์",["โครงสร้าง ระบบตรวจจับ ระบบขับเคลื่อน และโปรแกรม","สี รูปร่าง น้ำหนัก และขนาดของหุ่นยนต์","แบตเตอรี่ สายไฟ และกล่องบรรจุอุปกรณ์เท่านั้น","เครื่องมือซ่อมบำรุงและพื้นที่ปฏิบัติงาน"],0],
+["เลือกประเภทหุ่นยนต์","ROBO-X ต้องเลือกประเภทหุ่นยนต์สำหรับการเดินทาง","หุ่นยนต์ที่สามารถเคลื่อนที่จากตำแหน่งหนึ่งไปยังอีกตำแหน่งหนึ่งจัดเป็นประเภทใด",["หุ่นยนต์สำหรับงานเฉพาะ","หุ่นยนต์ทำงานตามเงื่อนไข","หุ่นยนต์เคลื่อนที่","หุ่นยนต์ระบบควบคุม"],2],
+["เปิดระบบตรวจจับ","ROBO-X สูญเสียความสามารถในการรับข้อมูล","หน้าที่หลักของเซนเซอร์ในระบบหุ่นยนต์คืออะไร",["ทำให้หุ่นยนต์เกิดการเคลื่อนที่","ตรวจจับหรือรับข้อมูลจากสภาพแวดล้อม","จ่ายพลังงานให้มอเตอร์และวงจร","กำหนดลำดับการทำงานของหุ่นยนต์"],1],
+["แก้ระบบสิ่งกีดขวาง","ROBO-X ต้องหยุดเมื่อพบสิ่งกีดขวาง","ควรใช้กระบวนการทำงานใด",["เซนเซอร์ตรวจจับ → ระบบควบคุมประมวลผล → ส่งคำสั่งให้ระบบขับเคลื่อน","ระบบขับเคลื่อน → โปรแกรม → เซนเซอร์ตรวจจับ","โปรแกรม → แหล่งจ่ายพลังงาน → โครงสร้าง","โครงสร้าง → มอเตอร์ → เปลี่ยนโปรแกรม"],0],
+["วิเคราะห์ข้อมูล","ตรวจสอบข้อมูลจากเซนเซอร์","ข้อมูลจากเซนเซอร์จัดอยู่ในส่วนใดของระบบ",["Input","Process","Output","Feedback"],0],
+["วางแผนสร้างหุ่นยนต์","เริ่มต้นภารกิจพัฒนาหุ่นยนต์","หลังจากกำหนดปัญหาหรือความต้องการของหุ่นยนต์แล้ว ขั้นตอนถัดไปคืออะไร",["เขียนโปรแกรมทันที","วิเคราะห์ภารกิจ","ทดสอบซ้ำและปรับปรุง","ประกอบระบบ"],1],
+["ค้นหาความเสียหาย","ROBO-X รับข้อมูลได้แต่ไม่เคลื่อนที่","ควรวิเคราะห์ระบบใดเพิ่มเติม",["ระบบขับเคลื่อน","สีของโครงสร้าง","รูปแบบภายนอกของหุ่นยนต์","ขนาดของพื้นที่ทำงาน"],0],
+["ซ่อมแซมระบบ","ROBO-X ทำงานผิดพลาดหลายส่วน","หากหุ่นยนต์ทำงานผิดพลาด ควรวิเคราะห์ปัญหาอย่างไร",["ตรวจสอบเฉพาะโปรแกรมเท่านั้น","ตรวจสอบเฉพาะโครงสร้างเท่านั้น","วิเคราะห์ทั้งโครงสร้าง วงจร เซนเซอร์ โปรแกรม ระบบขับเคลื่อน และพลังงาน","เปลี่ยนอุปกรณ์ทั้งหมดทันที"],2],
+["ปลดล็อกขั้นสุดท้าย","ออกแบบหุ่นยนต์ภารกิจสุดท้าย","เหตุใดการสร้างหุ่นยนต์จึงต้องเริ่มจากการกำหนดภารกิจหรือความต้องการ",["เพื่อเลือกสีของหุ่นยนต์ให้เหมาะสม","เพื่อเลือกองค์ประกอบและออกแบบระบบให้เหมาะกับการทำงาน","เพื่อให้หุ่นยนต์มีขนาดใหญ่ขึ้น","เพื่อให้ไม่ต้องทดสอบระบบภายหลัง"],1]
+];
+
+let index=0,score=0,player="";
+
+function startGame(){
+player=document.getElementById("name").value.trim();
+if(!player){
+alert("กรุณากรอกชื่อ");
+return;
+}
+document.getElementById("start").classList.add("hidden");
+document.getElementById("quiz").classList.remove("hidden");
+showQuestion();
+}
+function showQuestion(){let q=questions[index];mission.innerHTML="ด่าน "+(index+1);scene.innerHTML="สถานการณ์: "+q[1];count.innerHTML=(index+1)+"/10";bar.style.width=((index+1)*10)+"%";question.innerHTML=q[2];options.innerHTML="";feedback.innerHTML="";nextBtn.style.display="none";q[3].forEach((a,i)=>{let b=document.createElement("button");b.className="option";b.innerHTML=String.fromCharCode(65+i)+". "+a;b.onclick=()=>answer(i);options.appendChild(b);});}
+function answer(i){document.querySelectorAll(".option").forEach(b=>b.disabled=true);if(i===questions[index][4]){score+=10;feedback.innerHTML="🎉 ถูกต้อง! ROBO-X ได้รับพลังงานเพิ่ม 10 คะแนน 🤖";feedback.style.background="#dcfce7"}else{feedback.innerHTML="💡 ยังไม่ถูกต้อง ลองทบทวนอีกครั้ง แล้วเตรียมเข้าสู่ภารกิจต่อไป";feedback.style.background="#fee2e2"}document.getElementById("score").innerHTML=score;nextBtn.style.display="block";}
+function nextQuestion(){index++;if(index<questions.length)showQuestion();else finish();}
+function finish(){
+quiz.classList.add("hidden");
+result.classList.remove("hidden");
+summary.innerHTML=player+" ได้คะแนน "+score+" / 100";
+
+fetch(WEB_APP_URL,{
+method:"POST",
+body:JSON.stringify({
+name:player,
+score:score,
+correct:score/10
+})
+});
+
+loadOnlineHistory();
+}
+
+function loadOnlineHistory(){
+fetch(WEB_APP_URL)
+.then(r=>r.json())
+.then(data=>{
+let rows=data.slice(1);
+finalHistory.innerHTML=rows.map(x=>
+`<div class="history-item">
+👤 ${x[1]}<br>
+⭐ ${x[2]} คะแนน<br>
+📅 ${formatDate(x[4],x[5])}
+</div>`).join("") || "ยังไม่มีประวัติ";
+})
+.catch(()=>{
+finalHistory.innerHTML="ไม่สามารถโหลดประวัติออนไลน์ได้";
+});
+}
+function loadHistory(){
+fetch(WEB_APP_URL)
+.then(r=>r.json())
+.then(data=>{
+let rows=data.slice(1);
+document.getElementById("history").innerHTML=rows.map(x=>
+`<div class="history-item">👤 ${x[1]}<br>⭐ ${x[2]} คะแนน<br>📅 ${formatDate(x[4],x[5])}</div>`
+).join("") || "ยังไม่มีประวัติ";
+})
+.catch(()=>{
+document.getElementById("history").innerHTML="ยังไม่มีประวัติ";
+});
+}
+loadHistory();
+</script>
+</body>
+</html>

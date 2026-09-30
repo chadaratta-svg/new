@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ROBO-Z System Rescue Escape Mission</title>
+<style>
+body{font-family:"Noto Sans Thai",Tahoma,sans-serif;background:#0f172a;padding:20px;color:#111}
+.card{max-width:950px;margin:auto;background:white;border-radius:25px;padding:30px;line-height:1.8}
+h1,h2{text-align:center;color:#2563eb}
+.box{background:#eff6ff;padding:20px;border-radius:15px;margin:15px 0;font-size:18px}
+button{width:100%;padding:15px;margin:8px 0;border:0;border-radius:12px;background:#2563eb;color:white;font-size:18px;font-weight:bold}
+input{width:100%;padding:14px;font-size:18px;border-radius:10px;border:2px solid #ccc}
+
+.hidden{display:none}
+
+#robot{
+font-size:90px;
+text-align:center;
+transition:.3s;
+}
+
+.robot-idle{
+animation:float 2s infinite ease-in-out;
+}
+
+.robot-danger{
+animation:shake .35s infinite;
+filter:drop-shadow(0 0 12px red);
+}
+
+.robot-success{
+animation:jump .6s;
+}
+
+@keyframes float{
+0%,100%{transform:translateY(0)}
+50%{transform:translateY(-12px)}
+}
+
+@keyframes shake{
+0%{transform:translateX(0) rotate(0)}
+25%{transform:translateX(-8px) rotate(-5deg)}
+50%{transform:translateX(8px) rotate(5deg)}
+75%{transform:translateX(-8px) rotate(-5deg)}
+100%{transform:translateX(0)}
+}
+
+@keyframes jump{
+0%{transform:scale(1)}
+50%{transform:scale(1.2) translateY(-15px)}
+100%{transform:scale(1)}
+}
+
+
+.robot-broken{
+animation:broken .8s infinite;
+filter:grayscale(1) drop-shadow(0 0 15px red);
+opacity:.5;
+}
+
+@keyframes broken{
+0%{transform:rotate(0) translateY(0)}
+25%{transform:rotate(-8deg) translateY(8px)}
+50%{transform:rotate(8deg) translateY(15px)}
+75%{transform:rotate(-8deg) translateY(8px)}
+100%{transform:rotate(0) translateY(0)}
+}
+
+.broken-screen{
+background:#fee2e2;
+color:#991b1b;
+padding:20px;
+border-radius:15px;
+font-size:22px;
+font-weight:bold;
+}
+
+.damage{
+color:#dc2626;
+
+font-weight:bold;
+animation:blink .5s infinite;
+}
+
+@keyframes blink{
+50%{opacity:.3}
+}
+
+.success{background:#dcfce7;padding:15px;border-radius:12px}
+.code{background:#fef3c7;padding:15px;border-radius:12px;font-weight:bold}
+</style>
+</head>
+<body>
+<div class="card">
+
+<div id="start">
+<h1>🤖 ROBO-Z: System Rescue Escape Mission</h1>
+<div class="box">
+🚨 Robo-Z เกิดความผิดปกติของระบบ<br>
+คุณต้องช่วยวิเคราะห์องค์ประกอบของหุ่นยนต์ แก้ปัญหา และปลดล็อกระบบเพื่อกู้คืนภารกิจ
+</div>
+
+<input id="name" placeholder="กรอกชื่อนักวิเคราะห์">
+
+<h3>เลือกตัวละคร</h3>
+<button onclick="character='Nova นักวิเคราะห์';showChar()">👩‍🔬 Nova นักวิเคราะห์</button>
+<button onclick="character='Engineer วิศวกรระบบ';showChar()">🧑‍🔧 Engineer วิศวกรระบบ</button>
+<button onclick="character='AI Assistant';showChar()">🤖 AI Assistant</button>
+
+<p id="char"></p>
+<button onclick="begin()">🚀 เริ่มภารกิจ</button>
+</div>
+
+
+
+<div id="robot" class="robot-idle">🤖</div>
+<div id="game" class="hidden">
+
+
+<h2>Mission <span id="level"></span></h2>
+
+<div class="box">
+<h3>📌 สถานการณ์</h3>
+<p id="story"></p>
+</div>
+
+<div class="box">
+<h3>🎯 Challenge</h3>
+<p id="challenge"></p>
+<div id="choices"></div>
+</div>
+
+<div class="box">
+<h3>🤖 Robo-Z Feedback</h3>
+<p id="feedback"></p>
+</div>
+
+<div class="code">
+🔐 Code Unlock:
+<span id="code">---</span>
+</div>
+
+</div>
+
+
+<div id="end" class="hidden box"></div>
+
+</div>
+
+<script>
+let character="";
+let player="";
+let current=0;
+let codes=[];
+let wrongCount=0;
+
+const missions=[
+{
+level:"Level 1: Understanding",
+story:"Robo-Z ต้องการตรวจสอบองค์ประกอบของระบบหุ่นยนต์ก่อนเปิดระบบหลัก",
+challenge:"เลือกกลุ่มข้อมูลที่เกี่ยวข้องกับองค์ประกอบของหุ่นยนต์",
+choices:[
+["ตรวจสอบระบบพลังงาน ระบบควบคุม และระบบตรวจจับ","ถูกต้อง! เข้าใจองค์ประกอบของระบบ","CORE-01"],
+["ข้ามการตรวจสอบและเริ่มทำงานทันที","ข้อมูลยังไม่เพียงพอ","RETRY"],
+["เลือกเฉพาะส่วนที่ไม่เกี่ยวข้องกับระบบ","ต้องทบทวนองค์ประกอบ","FAIL"]
+]
+},
+{
+level:"Level 2: Application",
+story:"Robo-Z พบปัญหาในการทำงาน ต้องนำความรู้ไปประยุกต์ใช้",
+challenge:"เลือกแนวทางแก้ไขที่เชื่อมโยงกับหน้าที่ของระบบ",
+choices:[
+["วิเคราะห์ระบบที่เกี่ยวข้องก่อนแก้ไข","ยอดเยี่ยม! ใช้ความรู้แก้ปัญหา","APPLY-02"],
+["เปลี่ยนทุกระบบโดยไม่ตรวจสอบ","อาจทำให้เกิดปัญหาเพิ่ม","RETRY"],
+["ไม่วิเคราะห์ข้อมูล","ไม่สามารถแก้ปัญหาได้","FAIL"]
+]
+},
+{
+level:"Level 3: Analysis",
+story:"Robo-Z ต้องการตัดสินใจขั้นสุดท้ายเพื่อกู้คืนระบบ",
+challenge:"วิเคราะห์ข้อมูลหลายส่วนและเลือกแนวทางที่เหมาะสม",
+choices:[
+["เชื่อมโยงข้อมูลหลายระบบก่อนตัดสินใจ","สำเร็จ! วิเคราะห์เป็นระบบ","MASTER-03"],
+["ทดลองแบบไม่มีแผน","ควรใช้ข้อมูลประกอบ","RETRY"],
+["เลือกจากการคาดเดา","ต้องวิเคราะห์หลักฐาน","FAIL"]
+]
+}
+];
+
+function showChar(){
+document.getElementById("char").innerHTML="ตัวละครที่เลือก: "+character;
+}
+
+function begin(){
+player=document.getElementById("name").value;
+if(!player||!character){alert("กรุณากรอกชื่อและเลือกตัวละคร");return;}
+start.className="hidden";
+game.className="";
+load();
+}
+
+function load(){
+let m=missions[current];
+level.innerHTML=m.level;
+story.innerHTML=m.story;
+challenge.innerHTML=m.challenge;
+feedback.innerHTML="เลือกคำตอบเพื่อดำเนินภารกิจ";
+code.innerHTML="---";
+choices.innerHTML="";
+m.choices.forEach(c=>{
+let b=document.createElement("button");
+b.innerHTML=c[0];
+b.onclick=()=>answer(c);
+choices.appendChild(b);
+});
+}
+
+function answer(c){
+
+feedback.innerHTML=c[1];
+
+let robot=document.getElementById("robot");
+
+if(c[2]=="RETRY" || c[2]=="FAIL"){
+ robot.className="robot-danger";
+ feedback.innerHTML += "<br><span class='damage'>⚠️ Robo-Z ระบบเริ่มผิดปกติ! ต้องวิเคราะห์ใหม่</span>";
+ 
+setTimeout(()=>{robot.className="robot-idle";},1500);
+
+if(wrongCount>=2){
+setTimeout(robotBroken,1000);
+return;
+}
+
+}else{
+ robot.className="robot-success";
+ setTimeout(()=>{robot.className="robot-idle";},1000);
+}
+
+if(c[2]!="RETRY"&&c[2]!="FAIL"){
+codes.push(c[2]);
+code.innerHTML=c[2];
+current++;
+if(current<missions.length){
+setTimeout(load,1200);
+}else{
+setTimeout(finish,1200);
+}
+}else{
+feedback.innerHTML+="<br>ลองวิเคราะห์ข้อมูลใหม่อีกครั้ง";
+}
+}
+
+
+function robotBroken(){
+
+game.className="hidden";
+end.className="box broken-screen";
+
+end.innerHTML=
+"<div id='brokenRobot'>🤖💥</div>"+
+"<h2>🚨 SYSTEM FAILURE</h2>"+
+"Robo-Z ไม่สามารถทำงานต่อได้<br><br>"+
+"จำนวนความผิดพลาด: "+wrongCount+" ครั้ง<br><br>"+
+"🤖 Robo-Z:<br>"+
+"ระบบเสียหายจากการตัดสินใจที่ไม่เหมาะสม<br>"+
+"ลองเริ่มภารกิจใหม่และวิเคราะห์ข้อมูลให้รอบคอบขึ้น";
+
+document.getElementById("brokenRobot").className="robot-broken";
+
+}
+
+
+function finish(){
+
+game.className="hidden";
+end.className="";
+end.innerHTML="<h2>🎉 Mission Complete</h2>"+
+"นักวิเคราะห์: "+player+"<br>"+
+"ตัวละคร: "+character+"<br><br>"+
+"Code ที่ปลดล็อก:<br>"+codes.join(" → ")+
+"<br><br>🤖 Robo-Z: คุณสามารถบูรณาการความรู้เพื่อกู้คืนระบบได้สำเร็จ";
+}
+</script>
+
+</body>
+</html>

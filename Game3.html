@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>ROBO-Z Crisis Decision Mission</title>
+<style>
+body{font-family:Tahoma,'Noto Sans Thai',sans-serif;background:#0f172a;padding:20px}
+.card{max-width:900px;margin:auto;background:white;padding:30px;border-radius:20px;line-height:1.8;color:#111}
+h1,h2{color:#2563eb;text-align:center}
+.box{background:#eff6ff;padding:20px;border-radius:15px;margin:15px 0;font-size:18px}
+button{width:100%;padding:15px;margin:8px 0;border:0;border-radius:12px;background:#2563eb;color:white;font-size:18px;cursor:pointer}
+.feedback{background:#dcfce7}
+.summary{background:#fef3c7}
+.hidden{display:none}
+</style>
+</head>
+<body>
+<div class="card">
+<h1>🤖 ROBO-Z: Crisis Decision Mission</h1><p style='text-align:center;font-size:20px;font-weight:bold'>ภารกิจวิเคราะห์ปัญหาและตัดสินใจเพื่อกู้คืนระบบ Robo-Z</p>
+
+
+<div class="box" style="background:#fef3c7">
+<h2>🎮 วิธีการเล่นเกม</h2>
+<p>
+<b>ROBO-Z: Crisis Decision Mission</b><br>
+เกมจำลองการตัดสินใจ เมื่อระบบของ Robo-Z เกิดปัญหา
+ผู้เล่นต้องรับบทเป็นนักวิเคราะห์ ใช้ข้อมูลและหลักฐานที่มี
+เพื่อเลือกแนวทางแก้ไขที่เหมาะสม
+</p>
+
+<p><b>ขั้นตอนการเล่น</b></p>
+<p>
+1️⃣ อ่าน <b>Situation (สถานการณ์)</b><br>
+ทำความเข้าใจว่า Robo-Z กำลังพบปัญหาอะไร<br><br>
+
+2️⃣ วิเคราะห์ <b>Evidence (หลักฐาน)</b><br>
+พิจารณาข้อมูลที่ Robo-Z พบ ก่อนตัดสินใจ<br><br>
+
+3️⃣ เลือก <b>Decision (การตัดสินใจ)</b><br>
+เลือก 1 ทางเลือกที่คิดว่าเหมาะสมที่สุด<br><br>
+
+4️⃣ ดู <b>Consequence (ผลลัพธ์)</b><br>
+ตรวจสอบว่าการตัดสินใจส่งผลอย่างไร<br><br>
+
+5️⃣ อ่าน <b>Feedback จาก Robo-Z</b><br>
+เรียนรู้จากผลลัพธ์ และเดินหน้าสู่สถานการณ์ถัดไป
+</p>
+
+<p>
+💡 <b>เคล็ดลับ:</b><br>
+- อย่าเลือกจากการคาดเดา ให้ใช้ Evidence เป็นตัวช่วย<br>
+- การเลือกผิดไม่ใช่จุดจบ ผู้เล่นสามารถเรียนรู้จากผลลัพธ์ได้<br>
+- ตอนจบระบบจะแสดงเส้นทางการตัดสินใจที่คุณเลือก
+</p>
+</div>
+
+<div id="game">
+<div class="box">
+<h2>Current Turn: <span id="turn">1</span>/3</h2>
+<b>📌 Situation</b>
+<p id="situation"></p>
+</div>
+
+<div class="box">
+<b>🔎 Evidence</b>
+<p id="evidence"></p>
+</div>
+
+<div class="box">
+<b>🧠 Decision</b>
+<div id="choices"></div>
+</div>
+
+<div class="box">
+<b>⚙️ Consequence</b>
+<p id="consequence">รอการตัดสินใจ</p>
+</div>
+
+<div class="box feedback">
+<b>🤖 Robo-Z Feedback</b>
+<p id="feedback">เลือกแนวทางเพื่อดำเนินภารกิจ</p>
+</div>
+
+<button onclick="restart()">🔄 Restart Mission</button>
+</div>
+
+<div id="summary" class="summary hidden"></div>
+
+<script>
+const tree={
+start:{
+s:"Robo-Z พบความผิดปกติของระบบ นักวิเคราะห์ต้องตรวจสอบข้อมูลและเลือกแนวทางแก้ไข",
+e:["Evidence 1: พบความผิดปกติ","Evidence 2: มีข้อมูลที่ต้องวิเคราะห์","Evidence 3: ต้องเลือกแนวทางดำเนินการ"],
+c:[
+["ตรวจสอบหลักฐานเพิ่มเติม","level2","ได้รับข้อมูลใหม่","การวิเคราะห์ข้อมูลช่วยให้เข้าใจปัญหา","Success Path"],
+["ดำเนินการแก้ไขทันที","retry","พบว่ายังมีข้อมูลไม่เพียงพอ","ควรตรวจสอบก่อนตัดสินใจ","Retry Path"],
+["ข้ามการวิเคราะห์","bad","เกิดความล่าช้า","แนวทางนี้ใช้ทรัพยากรโดยไม่จำเป็น","Inefficient Path"]]},
+level2:{
+s:"Robo-Z ส่งหลักฐานใหม่ นักวิเคราะห์ต้องประเมินสถานการณ์อีกครั้ง",
+e:["New Evidence 1: พบข้อมูลเพิ่มเติม","New Evidence 2: ต้องเปรียบเทียบข้อมูล","New Evidence 3: ต้องเลือกวิธีดำเนินการ"],
+c:[
+["วิเคราะห์สาเหตุ","final","พบแนวทางแก้ไข","คุณใช้หลักฐานประกอบการตัดสินใจ","ไปยังการตัดสินใจสุดท้าย"],
+["ทดลองบางส่วน","retry","ต้องกลับมาตรวจสอบ","เรียนรู้จากผลลัพธ์","Retry Path"],
+["เลือกวิธีที่ไม่เกี่ยวข้อง","bad","ปัญหายังคงอยู่","ควรเชื่อมโยงข้อมูลก่อนเลือก","Inefficient Path"]]},
+final:{
+s:"ขั้นตอนสุดท้าย: เลือกแนวทางแก้ไขระบบ",
+e:["New Evidence: ต้องตัดสินใจขั้นสุดท้าย"],
+c:[
+["เลือกแนวทางเหมาะสม","success","ระบบกลับมาทำงาน","ยอดเยี่ยม!","Success Path"],
+["ตรวจสอบเพิ่มเติม","retry","ยังต้องวิเคราะห์","ลองใหม่อีกครั้ง","Retry Path"],
+["ใช้วิธีไม่เหมาะสม","bad","ระบบยังมีปัญหา","ควรทบทวนหลักฐาน","Inefficient Path"]]},
+success:{s:"ภารกิจสำเร็จ",e:["ระบบได้รับการแก้ไข"],c:[]},
+retry:{s:"ต้องย้อนกลับไปวิเคราะห์ใหม่",e:["พบข้อมูลเพิ่มเติม"],c:[]},
+bad:{s:"เส้นทางไม่มีประสิทธิภาพ",e:["ปัญหายังไม่ได้รับการแก้ไข"],c:[]}
+};
+
+let node="start",turn=1,path=[]; let correct=0; let wrong=0;
+
+function render(){
+let n=tree[node];
+situation.innerHTML=n.s;
+evidence.innerHTML=n.e.join("<br>");
+document.getElementById("turn").innerHTML=turn;
+choices.innerHTML="";
+n.c.forEach(x=>{
+let b=document.createElement("button");
+b.innerHTML=x[0];
+b.onclick=()=>choose(x);
+choices.appendChild(b);
+});
+if(n.c.length===0)setTimeout(end,500);
+}
+
+function choose(x){
+let result = (x[4]=="Success Path") ? "✅ ถูกต้อง" : (x[4]=="Retry Path" ? "🟡 ควรทบทวน" : "❌ ไม่เหมาะสม");
+if(x[4]=="Success Path"){correct++;}else{wrong++;}
+path.push("Turn "+turn+": "+x[0]+" → "+result+" ("+x[4]+")");
+consequence.innerHTML=x[2];
+feedback.innerHTML=x[3];
+node=x[1];
+turn++;
+setTimeout(render,800);
+}
+
+function end(){
+game.className="hidden";
+summary.className="box";
+summary.innerHTML=
+"<h2>🎉 Mission Summary</h2>"+
+"<p><b>ผลการตัดสินใจของคุณ</b></p>"+
+path.join("<br>")+
+"<br><br>✅ การเลือกที่เหมาะสม: "+correct+" ครั้ง"+
+"<br>❌ การเลือกที่ควรปรับปรุง: "+wrong+" ครั้ง"+
+"<br><br>🤖 Robo-Z: ภารกิจสิ้นสุด พร้อมเรียนรู้จากทุกการตัดสินใจ";
+}
+
+function restart(){
+node="start";turn=1;path=[];
+game.className="";
+summary.className="hidden";
+render();
+}
+render();
+</script>
+</div>
+</body>
+</html>

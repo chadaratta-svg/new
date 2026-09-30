@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ROBO-Z Classification Lab</title>
+<style>
+*{box-sizing:border-box;font-family:"Tahoma","Noto Sans Thai",Arial,sans-serif}
+body{margin:0;background:linear-gradient(135deg,#0b132b,#2563eb);padding:20px;min-height:100vh;color:#111827}
+.card{max-width:1000px;margin:auto;background:#fff;border-radius:25px;padding:25px;box-shadow:0 10px 30px #0005}
+h1,h2{text-align:center;color:#1d4ed8;font-weight:800}
+.story{background:#eff6ff;padding:18px;border-radius:15px;line-height:1.9;font-size:18px;color:#111827}
+input,button{width:100%;padding:14px;margin-top:12px;border-radius:12px;font-size:18px}
+input{border:2px solid #ddd}
+button{background:#2563eb;color:white;border:0;cursor:pointer}
+.hidden{display:none}
+.layout{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.zone{background:#f8fafc;border:3px dashed #94a3b8;border-radius:15px;padding:15px;min-height:300px}
+.item{background:#dbeafe;padding:16px;margin:10px;border-radius:12px;cursor:grab;border:2px solid #2563eb;font-size:20px;font-weight:bold;color:#111827}
+.category{background:#dcfce7;padding:18px;margin:10px;border-radius:12px;min-height:70px;font-size:19px;font-weight:bold;color:#111827}
+.progress{height:22px;background:#ddd;border-radius:20px;overflow:hidden}
+.bar{height:100%;background:#22c55e;width:0}
+.feedback,.hint{margin-top:15px;padding:15px;border-radius:12px;background:#f1f5f9;font-size:18px;font-weight:bold;color:#111827}
+.score{text-align:center;font-size:22px}
+@media(max-width:700px){.layout{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="card">
+
+<section id="start">
+<h1>🤖 ROBO-Z: Classification Lab</h1>
+<div class="story">
+คุณคือ <b>Nova นักวิเคราะห์ข้อมูลฝึกหัด</b><br>
+ฐานข้อมูลองค์ประกอบของหุ่นยนต์ถูกสลับตำแหน่ง<br>
+ภารกิจของคุณคือ ลาก Item กลับเข้าสู่หมวดหมู่ที่ถูกต้อง เพื่อช่วย Robo-Z ฟื้นฟูระบบ
+</div>
+<input id="name" placeholder="กรอกชื่อผู้เล่น">
+<button onclick="begin()">เริ่มภารกิจ 🚀</button>
+</section>
+
+<section id="game" class="hidden">
+<h2>🛰️ Mission: Sort Robot Components</h2>
+<div class="progress"><div id="bar" class="bar"></div></div>
+<p class="score">คะแนน <span id="score">0</span>/100</p>
+
+<div class="layout">
+<div class="zone">
+<h3>📦 Item Database</h3>
+<div id="items"></div>
+</div>
+
+<div class="zone">
+<h3>🗂 Category Zone</h3>
+<div class="category" data-cat="โครงสร้างและส่วนประกอบ">🏗️ โครงสร้างและส่วนประกอบ</div>
+<div class="category" data-cat="ระบบตรวจจับและข้อมูล">👁️ ระบบตรวจจับและข้อมูล</div>
+<div class="category" data-cat="ระบบการเคลื่อนที่">⚙️ ระบบการเคลื่อนที่</div>
+<div class="category" data-cat="ระบบควบคุมและโปรแกรม">🧠 ระบบควบคุมและโปรแกรม</div>
+<div class="category" data-cat="ระบบพลังงาน">🔋 ระบบพลังงาน</div>
+</div>
+</div>
+
+<div id="feedback" class="feedback"></div>
+<div id="hint" class="hint"></div>
+<button onclick="resetGame()">🔄 Reset Mission</button>
+</section>
+
+<section id="summary" class="hidden">
+<h2>🎉 Mission Complete</h2>
+<div class="story" id="result"></div>
+</section>
+
+</div>
+
+<script>
+const WEB_APP_URL="https://script.google.com/macros/s/AKfycbxeRZLX4Dcf3K3XzIwfekuPiS9sEbaCai_tG1kIJSge_wF4YFSR90qnt0NbAsd1sCVfvQ/exec";
+let player="",score=0,complete=0,wrongCount=0;
+
+const data=[
+{name:"โครงสร้างหุ่นยนต์",cat:"โครงสร้างและส่วนประกอบ",hint:"ลองคิดถึงส่วนที่ทำหน้าที่รองรับอุปกรณ์ต่าง ๆ"},
+{name:"เซนเซอร์ (Sensor)",cat:"ระบบตรวจจับและข้อมูล",hint:"ลองคิดถึงส่วนที่รับข้อมูลจากสภาพแวดล้อม"},
+{name:"ระบบขับเคลื่อน",cat:"ระบบการเคลื่อนที่",hint:"ลองคิดถึงส่วนที่ทำให้หุ่นยนต์เกิดการเคลื่อนที่"},
+{name:"ระบบส่งกำลัง",cat:"ระบบการเคลื่อนที่",hint:"ลองคิดถึงการถ่ายทอดกำลังไปยังส่วนเคลื่อนที่"},
+{name:"ระบบนำทาง",cat:"ระบบควบคุมและโปรแกรม",hint:"ลองคิดถึงการกำหนดหรือควบคุมเส้นทาง"},
+{name:"Feedback",cat:"ระบบควบคุมและโปรแกรม",hint:"ลองคิดถึงการนำผลการทำงานกลับมาใช้ควบคุม"},
+{name:"แหล่งจ่ายพลังงาน",cat:"ระบบพลังงาน",hint:"ลองคิดถึงส่วนที่จ่ายพลังงานให้ระบบ"},
+{name:"ไมโครคอนโทรลเลอร์",cat:"ระบบควบคุมและโปรแกรม",hint:"ลองคิดถึงส่วนที่ประมวลผลและส่งคำสั่ง"},
+{name:"โปรแกรมควบคุม",cat:"ระบบควบคุมและโปรแกรม",hint:"ลองคิดถึงชุดคำสั่งกำหนดพฤติกรรม"},
+{name:"หุ่นยนต์เคลื่อนที่",cat:"ระบบการเคลื่อนที่",hint:"ลองคิดถึงประเภทของหุ่นยนต์ที่เคลื่อนที่ได้"}
+];
+
+function begin(){
+player=document.getElementById("name").value.trim();
+if(!player)return alert("กรุณากรอกชื่อ");
+start.classList.add("hidden");
+game.classList.remove("hidden");
+loadItems();
+}
+
+function loadItems(){
+items.innerHTML="";
+data.sort(()=>Math.random()-0.5).forEach((d,i)=>{
+let e=document.createElement("div");
+e.className="item";
+e.draggable=true;
+e.textContent=d.name;
+e.dataset.cat=d.cat;
+e.dataset.hint=d.hint;
+e.ondragstart=x=>x.dataTransfer.setData("cat",d.cat);
+items.appendChild(e);
+});
+document.querySelectorAll(".category").forEach(c=>{
+c.ondragover=e=>e.preventDefault();
+c.ondrop=e=>drop(c,e);
+});
+}
+
+async function drop(zone,e){
+let cat=e.dataTransfer.getData("cat");
+let item=[...document.querySelectorAll(".item")].find(x=>x.dataset.cat===cat);
+if(zone.dataset.cat===cat){
+zone.appendChild(item);
+item.draggable=false;
+score+=10;complete++;
+document.getElementById("score").textContent=score;
+feedback.innerHTML="✅ ถูกต้อง! Robo-Z บันทึกข้อมูลสำเร็จ +10 คะแนน";
+}else{
+wrongCount++; feedback.innerHTML="⚠️ ยังไม่ถูกต้อง";
+hint.innerHTML="💡 Hint: "+item.dataset.hint;
+}
+bar.style.width=(complete*10)+"%";
+if(complete===10){
+await saveResult();
+game.classList.add("hidden");
+summary.classList.remove("hidden");
+result.innerHTML=`
+<h2>🤖 Robo-Z วิเคราะห์ผลภารกิจ</h2>
+<p>👤 นักวิเคราะห์: <b>${player}</b></p>
+<p>📦 จัดหมวดข้อมูลสำเร็จ: <b>${complete}/10</b> รายการ</p>
+<p>🔄 จำนวนครั้งที่ลองใหม่: <b>${wrongCount}</b> ครั้ง</p>
+<hr>
+${wrongCount<=1?
+`🏆 <b>นักวิเคราะห์หุ่นยนต์ยอดเยี่ยม</b><br>
+🤖 Robo-Z:<br>
+"ยอดเยี่ยม! คุณสามารถวิเคราะห์ความสัมพันธ์ขององค์ประกอบหุ่นยนต์
+และจัดข้อมูลเข้าสู่หมวดที่เหมาะสมได้อย่างแม่นยำ"`:
+wrongCount<=4?
+`🌟 <b>นักวิเคราะห์กำลังก้าวหน้า</b><br>
+🤖 Robo-Z:<br>
+"คุณมีความเข้าใจพื้นฐานขององค์ประกอบหุ่นยนต์แล้ว
+ลองฝึกเชื่อมโยงหน้าที่ของแต่ละส่วนเพิ่มเติม เพื่อเพิ่มความแม่นยำ"`:
+`🌱 <b>นักวิเคราะห์ฝึกฝน</b><br>
+🤖 Robo-Z:<br>
+"ไม่เป็นไร ทุกการทดลองช่วยให้เรียนรู้มากขึ้น
+ควรทบทวนหน้าที่ของแต่ละองค์ประกอบ และลองวิเคราะห์อีกครั้ง"`
+}
+`; ; saveResult();;
+}
+}
+
+function resetGame(){
+score=0;complete=0;
+document.getElementById("score").textContent=0;
+document.getElementById("bar").style.width="0%";
+loadItems();
+}
+
+async function saveResult(){
+ try{
+  await fetch(WEB_APP_URL,{
+   method:'POST',
+   body:JSON.stringify({
+    name:player,
+    correct:complete,
+    wrong:wrongCount||0
+   })
+  });
+ }catch(e){}
+}
+</script>
+</body>
+</html>
